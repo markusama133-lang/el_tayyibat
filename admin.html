@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة الأدمن - الطيبات</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+.admin-area{max-width:1200px;margin:40px auto}
+.admin-card{border-radius:12px}
+.stat-box{border-radius:12px;padding:20px;text-align:center;}
+.stat-num{font-size:26px;font-weight:bold;color:#c00}
+#statProducts { background-color: #ffe0e0; }
+#statOrders { background-color: #e0ffe0; }
+#statMoney  { background-color: #e0e0ff; }
+#statFeedback { background-color: #fff0b3; }
+</style>
+</head>
+<body>
+
+<header class="bg-danger py-2">
+  <div class="container d-flex justify-content-between align-items-center">
+    <a href="index.html" class="text-white fw-bold fs-4">🍯 الطيبات</a>
+    <div class="text-white">لوحة الإدارة</div>
+  </div>
+</header>
+
+<div class="admin-area container">
+
+<div id="loginBox" class="card p-4 admin-card mb-4">
+<h5>تسجيل دخول الأدمن</h5>
+<div class="row g-2">
+<div class="col-md-6"><input id="adminPass" class="form-control" placeholder="كلمة المرور"></div>
+<div class="col-md-6 d-grid"><button id="loginBtn" class="btn btn-danger">دخول</button></div>
+</div>
+<small class="text-muted mt-2 d-block">كلمة المرور: admin123</small>
+</div>
+
+<div id="adminArea" style="display:none">
+
+<div class="row mb-4">
+<div class="col-lg-8">
+<div class="card p-3 admin-card">
+<h5>إضافة / تعديل منتج</h5>
+<form id="prodForm" class="row g-2">
+<div class="col-12"><input id="prodName" class="form-control" placeholder="اسم المنتج" required></div>
+<div class="col-6"><input id="prodPrice" type="number" class="form-control" placeholder="السعر" required></div>
+<div class="col-6"><input id="prodImg" type="file" class="form-control"></div>
+<div class="col-12"><textarea id="prodDesc" class="form-control" placeholder="وصف قصير"></textarea></div>
+<div class="col-12 d-grid"><button class="btn btn-warning" type="submit">حفظ المنتج</button></div>
+</form>
+</div>
+</div>
+
+<div class="col-lg-4">
+<div class="card p-3 admin-card">
+<h5 class="text-center mb-3">📊 الإحصائيات</h5>
+<div class="stat-box mb-2">عدد المنتجات<div id="statProducts" class="stat-num">0</div></div>
+<div class="stat-box mb-2">عدد الطلبات<div id="statOrders" class="stat-num">0</div></div>
+<div class="stat-box mb-2">إجمالي المبيعات<div id="statMoney" class="stat-num">0 ج.م</div></div>
+<div class="stat-box">عدد الشكاوي<div id="statFeedback" class="stat-num">0</div></div>
+</div>
+</div>
+</div>
+
+<div class="card p-3 admin-card mb-4">
+<h5>قائمة المنتجات</h5>
+<div id="adminProducts" class="row g-3"></div>
+</div>
+
+<div class="card p-3 admin-card mb-4">
+<h5>الطلبات الواردة</h5>
+<div class="table-responsive mt-2">
+<table class="table table-bordered">
+<thead class="table-danger">
+<tr><th>رقم</th><th>عميل</th><th>هاتف</th><th>العنوان</th><th>الإجمالي</th><th>التاريخ</th><th>تم؟</th><th>فاتورة</th><th>حذف</th></tr>
+</thead>
+<tbody id="ordersBody"></tbody>
+</table>
+</div>
+</div>
+
+<div class="card p-3 admin-card mb-4">
+<h5>الشكاوي والاقتراحات</h5>
+<div id="feedbackList"></div>
+</div>
+
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+
+<script>
+/* 🟥 Login */
+const loginBox=document.getElementById('loginBox');
+const adminArea=document.getElementById('adminArea');
+const loginBtn=document.getElementById('loginBtn');
+const adminPass=document.getElementById('adminPass');
+
+loginBtn.addEventListener('click', loginAdmin);
+adminPass.addEventListener('keypress', e=>{ if(e.key==='Enter') loginAdmin(); });
+
+function loginAdmin(){
+if(adminPass.value==='admin123'){
+loginBox.style.display='none';
+adminArea.style.display='block';
+loadAdmin();
+}else alert('كلمة المرور خاطئة');
+}
+
+/* 🟥 LocalStorage Shortcuts */
+const fetchProducts=()=>JSON.parse(localStorage.getItem('et_products')||'[]');
+const saveProducts=arr=>localStorage.setItem('et_products',JSON.stringify(arr));
+const fetchOrders=()=>JSON.parse(localStorage.getItem('et_orders')||'[]');
+const saveOrders=arr=>localStorage.setItem('et_orders',JSON.stringify(arr));
+const fetchFeedback=()=>JSON.parse(localStorage.getItem('et_feedback')||'[]');
+const saveFeedback=arr=>localStorage.setItem('et_feedback',JSON.stringify(arr));
+
+/* 🟥 Dashboard Loader */
+function loadAdmin(){
+renderAdminProducts();
+renderAdminOrders();
+renderFeedback();
+updateStats();
+}
+
+/* 🟩 Stats Update */
+function updateStats(){
+const p=fetchProducts();
+const o=fetchOrders();
+const f=fetchFeedback();
+// تعديل بسيط هنا لقراءة المفتاح العربي للإجمالي
+let money=0; o.forEach(x=>money+= (x["الإجمالي"] || x.total || 0) );
+document.getElementById('statProducts').innerText=p.length;
+document.getElementById('statOrders').innerText=o.length;
+document.getElementById('statMoney').innerText=money+' ج.م';
+document.getElementById('statFeedback').innerText=f.length;
+}
+
+/* 🟨 Product CRUD */
+let editIndex=null;
+document.getElementById('prodForm').addEventListener('submit', e=>{
+e.preventDefault();
+const name=document.getElementById('prodName').value.trim();
+const price=parseFloat(document.getElementById('prodPrice').value)||0;
+const desc=document.getElementById('prodDesc').value.trim();
+let img='assets/placeholder.jpg';
+const fileInput=document.getElementById('prodImg');
+if(fileInput.files && fileInput.files[0]){
+const reader=new FileReader();
+reader.onload=function(e){ img=e.target.result; saveProductAndRender(name,price,img,desc); }
+reader.readAsDataURL(fileInput.files[0]);
+}else saveProductAndRender(name,price,img,desc);
+});
+
+function saveProductAndRender(name,price,img,desc){
+const arr=fetchProducts();
+if(editIndex!==null){ arr[editIndex]={...arr[editIndex],name,price,img,desc}; editIndex=null; } 
+else arr.unshift({id:Date.now(),name,price,img,desc});
+saveProducts(arr); document.getElementById('prodForm').reset(); renderAdminProducts(); updateStats();
+}
+
+function renderAdminProducts(){
+const arr=fetchProducts(); const box=document.getElementById('adminProducts'); box.innerHTML='';
+arr.forEach((p,i)=>{
+box.innerHTML+=`
+<div class="col-12">
+<div class="d-flex justify-content-between border p-2 rounded align-items-center">
+<div>
+<strong>${p.name}</strong><br><span class="text-danger">${p.price} ج.م</span><br>${p.desc}
+</div>
+<div>
+<button class="btn btn-sm btn-primary" onclick="editProd(${i})">تعديل</button>
+<button class="btn btn-sm btn-danger" onclick="delProd(${i})">حذف</button>
+</div>
+</div></div>`; });
+}
+
+function editProd(i){
+const arr=fetchProducts(); const p=arr[i];
+document.getElementById('prodName').value=p.name;
+document.getElementById('prodPrice').value=p.price;
+document.getElementById('prodDesc').value=p.desc;
+editIndex=i;
+}
+
+function delProd(i){
+if(!confirm('حذف؟'))return;
+const arr=fetchProducts(); arr.splice(i,1);
+saveProducts(arr); renderAdminProducts(); updateStats();
+}
+
+/* 🟦 Orders (تم استبدال هذه الدوال بالكامل) */
+
+// 🔴 (تم التعديل) 🔴 Admin Orders rendering (يقرأ المفاتيح العربية)
+function renderAdminOrders(){
+  const table = document.getElementById("ordersBody");
+  if(!table) return;
+
+  const arr = fetchOrders();
+  table.innerHTML = "";
+  arr.forEach((o,i)=>{
+
+    const id = o["رقم_الطلب"] || o.id || (arr.length - i);
+    const client = o["العميل"] || o.name || 'غير مسجل';
+    const phone = o["الهاتف"] || o.phone || 'غير مسجل';
+    const address = o["العنوان"] || o.address || 'غير مسجل';
+    const total = (o["الإجمالي"] || o.total || 0);
+    const date = o["التاريخ"] || o.date || '';
+    const done = o["تم"] || false;
+
+    // تم تعديل الأعمدة لتطابق الهيدر الجديد
+    table.innerHTML += `
+      <tr>
+        <td>${id}</td>
+        <td>${client}</td>
+        <td>${phone}</td>
+        <td>${address}</td>
+        <td>${total.toFixed ? total.toFixed(2) + ' ج.م' : total + ' ج.م'}</td>
+        <td>${date}</td>
+        <td><input type="checkbox" onchange="toggleDone(${i}, this.checked)" ${done ? 'checked' : ''}></td>
+        <td><button class="btn btn-sm btn-primary" onclick="viewOrder(${i})">📄 فاتورة</button></td>
+        <td><button class="btn btn-sm btn-danger" onclick="deleteOrder(${i})">حذف</button></td>
+      </tr>
+    `;
+  });
+
+  updateStats(); // تم تصحيح اسم الدالة
+}
+
+function deleteOrder(i){
+  if(!confirm('حذف؟'))return; // إضافة تأكيد الحذف
+  const arr = fetchOrders();
+  arr.splice(i,1);
+  saveOrders(arr);
+  renderAdminOrders();
+}
+
+function toggleDone(i, val){
+  const arr = fetchOrders();
+  if(!arr[i]) return;
+  arr[i]["تم"] = val;
+  saveOrders(arr);
+  // لا نحتاج لإعادة العرض الكامل هنا، لكن استدعاء updateStats جيد
+  updateStats();
+}
+
+// 🔴 (تم التعديل) 🔴 دالة طباعة الفاتورة المتقدمة (من script.js)
+async function viewOrder(i){
+  const orders = fetchOrders();
+  const o = orders[i];
+  if(!o) return alert("الطلب غير موجود");
+
+  // إنشاء عنصر HTML مؤقت يحتوي الفاتورة (بحرية RTL وخط Cairo)
+  const invoiceId = `invoice_tmp_${Date.now()}`;
+  const wrapper = document.createElement('div');
+  wrapper.id = invoiceId;
+  wrapper.style.direction = 'rtl';
+  wrapper.style.textAlign = 'right';
+  wrapper.style.padding = '20px';
+  wrapper.style.fontFamily = "'Cairo', sans-serif";
+  wrapper.style.background = 'white';
+  wrapper.style.width = '800px'; // حجم مناسب للعرض قبل التصدير
+  wrapper.innerHTML = `
+    <div style="font-family: 'Cairo', sans-serif; color:#222;">
+      <h1 style="text-align:center;margin-bottom:4px;">فاتورة طلب</h1>
+      <p style="text-align:center;margin-top:0;margin-bottom:6px;">رقم الطلب: <strong>${o["رقم_الطلب"] || i+1}</strong></p>
+      <p style="margin:0;"><strong>العميل:</strong> ${o["العميل"] || o.name || '-'}</p>
+      <p style="margin:0;"><strong>الهاتف:</strong> ${o["الهاتف"] || o.phone || '-'}</p>
+      <p style="margin:0 0 6px 0;"><strong>العنوان:</strong> ${o["العنوان"] || o.address || '-'}</p>
+      <p style="margin:0 0 12px 0;"><strong>التاريخ:</strong> ${o["التاريخ"] || o.date || ''}</p>
+
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th style="border:1px solid #ccc;padding:8px;background:#f4f4f4;">المنتج</th>
+            <th style="border:1px solid #ccc;padding:8px;background:#f4f4f4;">السعر</th>
+            <th style="border:1px solid #ccc;padding:8px;background:#f4f4f4;">الكمية</th>
+            <th style="border:1px solid #ccc;padding:8px;background:#f4f4f4;">الإجمالي</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${(o["المنتجات"] || o.items || []).map(item => `
+            <tr>
+              <td style="border:1px solid #ccc;padding:8px;">${item.name}</td>
+              <td style="border:1px solid #ccc;padding:8px;">${item.price} ج.م</td>
+              <td style="border:1px solid #ccc;padding:8px;">${item.qty}</td>
+              <td style="border:1px solid #ccc;padding:8px;">${(item.price*item.qty).toFixed(2)} ج.م</td>
+            </tr>
+          `).join('')}
+          <tr>
+            <td colspan="3" style="border:1px solid #ccc;padding:8px;text-align:left;font-weight:bold;">الإجمالي الكلي</td>
+            <td style="border:1px solid #ccc;padding:8px;font-weight:bold;">${(o["الإجمالي"] || o.total || 0).toFixed(2)} ج.م</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="text-align:center;margin-top:20px;color:#666;">شكراً لتعاملكم مع <strong>الطيبات للحلاوة الطحينية</strong></p>
+    </div>
+  `;
+  document.body.appendChild(wrapper);
+
+  // استخدم jsPDF.html لتحويل العنصر إلى PDF
+  if(window.jspdf && window.jspdf.jsPDF && window.html2canvas){
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({orientation:'portrait', unit:'pt', format:'a4'});
+      const marginLeft = 20;
+      const marginTop = 20;
+
+      // نستخدم html2canvas يدوياً لضمان الدعم الكامل
+      const canvas = await window.html2canvas(document.getElementById(invoiceId), {
+          scale: 1.5, // جودة أعلى
+          useCORS: true,
+          logging: false
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const imgProps = doc.getImageProperties(imgData);
+      const pdfWidth = doc.internal.pageSize.getWidth() - (marginLeft * 2);
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      doc.addImage(imgData, 'PNG', marginLeft, marginTop, pdfWidth, pdfHeight);
+      
+      const filename = `فاتورة_طلب_${o["رقم_الطلب"] || i+1}.pdf`;
+      doc.save(filename);
+
+    } catch (err){
+      console.error("خطأ أثناء توليد PDF عبر jsPDF:", err);
+      alert("حدث خطأ أثناء توليد ملف PDF. افتح الكونسول للمزيد.");
+    } finally {
+      // إزالة العنصر المؤقت
+      const el = document.getElementById(invoiceId);
+      if(el) el.remove();
+    }
+  } else {
+    alert("مكتبة jsPDF أو html2canvas غير محملة. لا يمكن طباعة الفاتورة.");
+    const el = document.getElementById(invoiceId);
+    if(el) el.remove();
+  }
+}
+
+
+/* 🟨 Feedback */
+function renderFeedback(){
+const arr=fetchFeedback(); const box=document.getElementById('feedbackList'); box.innerHTML='';
+if(arr.length===0){ box.innerHTML='<p class="text-muted">لا توجد رسائل</p>'; return; }
+arr.forEach((f,i)=>{
+box.innerHTML+=`<div class="border p-2 mb-2 rounded">
+<strong>${f.name} (${f.type})</strong> — <small>${f.date}</small><br>${f.msg}
+<button class="btn btn-sm btn-danger float-end" onclick="deleteFeedback(${i})">حذف</button>
+</div>`; });
+}
+
+function deleteFeedback(i){
+const arr=fetchFeedback(); arr.splice(i,1);
+saveFeedback(arr); renderFeedback(); updateStats();
+}
+
+window.addEventListener('load',()=>{});
+
+
+</script>
+
+</body>
+</html>

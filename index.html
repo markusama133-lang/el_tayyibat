@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>الطيبات - El Tayyibat | حلاوة طحينية بالجملة</title>
+
+  <!-- Bootstrap (RTL) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+
+  <!-- Google Font (Cairo) -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Local CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="fixed-top header-shadow">
+    <nav class="container navbar navbar-expand-lg">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="#home">
+        <div ><img class="logo-circle" src="assets/logo.jpg" alt="this is logo-circle"></div>
+        <div>
+          <div class="brand-ename">El Tayyibat</div>
+          <small class="brand-aname">الطيبات للحلاوة الطحينية</small>
+        </div>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <li class="nav-item"><a class="nav-link" href="#home">الرئيسية</a></li>
+          <li class="nav-item"><a class="nav-link" href="#products">منتجاتنا</a></li>
+          <li class="nav-item"><a class="nav-link" href="#order">اطلب الآن</a></li>
+          <li class="nav-item"><a class="nav-link" href="#contact">تواصل</a></li>
+          <li class="nav-item"><a class="nav-link" href="#contact">الشكاوي / الاقتراحات</a></li>
+          <li class="nav-item"><a class="nav-link btn btn-sm btn-outline-danger ms-2" href="admin.html">لوحة الأدمن</a></li>
+          <li class="nav-item position-relative ms-2">
+            <button id="cartBtn" class="nav-link btn btn-sm btn-outline-success position-relative">
+              🛒 السلة
+              <span id="cartCountNav" class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle">0</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section id="home" class="hero d-flex align-items-center">
+    <div class="overlay"></div>
+    <div class="container text-center hero-content animate-fade-up">
+      <h1 class="display-5 fw-bold">طعم أصيل — جودة بالجملة</h1>
+      <p class="lead mb-4">حلاوة طحينية من مصنع <span class="text-gold fw-600">الطيبات</span> — تغليف احترافي وأسعار مناسبة للتجار</p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="#products" class="btn btn-warning btn-lg shadow-sm">تصفح المنتجات</a>
+        <a href="#order" class="btn btn-outline-light btn-lg">اطلب الآن</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products -->
+  <section id="products" class="py-5">
+    <div class="container">
+      <h2 class="section-title text-center mb-4 animate-fade-up">منتجاتنا</h2>
+      <div id="productGrid" class="row g-4">
+        <!-- تنتقل المنتجات من script.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Order Section -->
+  <section id="order" class="py-5 bg-light">
+    <div class="container">
+      <h2 class="section-title text-center mb-3 animate-fade-up">نموذج الطلب</h2>
+
+      <div class="row justify-content-center">
+        <div class="col-lg-7">
+          <form id="orderForm" class="card p-4 shadow-sm">
+            <div class="mb-3">
+              <label class="form-label">الاسم الكامل</label>
+              <input type="text" id="custName" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">رقم الهاتف</label>
+              <input type="tel" id="custPhone" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">اختر المنتج</label>
+              <select id="orderProduct" class="form-select" >
+                <option value="">اختر منتج...</option>
+              </select>
+              <div class="d-flex gap-2 align-items-center mt-2">
+                <input type="number" id="orderQty" class="form-control" min="0.1" step="0.1" value="1" style="max-width:120px;">
+                <button type="button" id="addToCartBtn" class="btn btn-outline-success">أضف للسلة</button>
+              </div>
+              <p id="cartCount" style="margin-top: 10px; color: green;"></p>
+              <input type="hidden" name="cartData" id="cartData">
+            </div>
+
+            <div class="mb-3 row">
+              <div class="col-6">
+                <label class="form-label">الكمية (وحدات/J)</label>
+                <!-- kept for compatibility but primary qty input above -->
+                <input type="number" id="orderQtyFallback" class="form-control d-none" min="1" value="1" >
+              </div>
+              <div class="col-6">
+                <label class="form-label">نوع التوصيل</label>
+                <select id="orderDelivery" class="form-select">
+                  <option value="استلام">استلام</option>
+                  <option value="توصيل">توصيل</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-3 d-flex gap-2">
+              <button type="button" id="getLocationBtn" class="btn btn-outline-secondary flex-grow-1">تحديد الموقع تلقائياً</button>
+              <input type="text" id="orderAddress" class="form-control flex-grow-2" placeholder="العنوان (يمكن تركه وسيتم استبداله بالموقع)" />
+            </div>
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-danger btn-lg">أرسل الطلب</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feedback Section -->
+  <section id="contact" class="container mt-5">
+    <h2 class="text-center mb-4">الشكاوى والاقتراحات</h2>
+    <form id="feedbackForm">
+      <div class="mb-3">
+        <label for="name" class="form-label">الاسم</label>
+        <input type="text" class="form-control" id="name" placeholder="اكتب اسمك">
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">البريد الإلكتروني (اختياري)</label>
+        <input type="email" class="form-control" id="email" placeholder="example@email.com">
+      </div>
+
+      <div class="mb-3">
+        <label for="type" class="form-label">النوع</label>
+        <select class="form-control" id="type">
+          <option value="complaint">شكوى</option>
+          <option value="suggestion">اقتراح</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="message" class="form-label">الرسالة</label>
+        <textarea class="form-control" id="message" rows="4" placeholder="اكتب رسالتك هنا..."></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary">إرسال</button>
+    </form>
+
+    <p id="formResponse" class="text-success mt-3"></p>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="py-5">
+    <div class="container text-center">
+      <h3 class="mb-3 section-title animate-fade-up">تواصل معنا</h3>
+      <p class="mb-2">واتساب: <a href="https://wa.me/201234567890" target="_blank" class="text-danger">01234567890</a> &nbsp; | &nbsp; بريد: info@eltayyibat.com</p>
+      <p class="small text-muted">العنوان: منطقة الصناعة - مدينة تجارية (مثال)</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-3 bg-dark text-white text-center">
+    <div class="container">
+      <small>© 2025 مصنع الطيبات - El Tayyibat</small>
+    </div>
+  </footer>
+
+  <!-- Invoice popup (hidden template) -->
+  <div id="invoiceTemplate" style="display:none;"></div>
+
+  <!-- Modals: Product Detail + Cart -->
+  <!-- Product Detail Modal -->
+  <div class="modal fade" id="productDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 id="pd_title" class="modal-title"></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body d-flex gap-3">
+          <img id="pd_img" src="" alt="" style="max-width:220px; width:40%;" class="rounded">
+          <div>
+            <p id="pd_desc"></p>
+            <p class="fw-bold text-danger" id="pd_price"></p>
+            <div class="d-flex gap-2 align-items-center">
+              <input id="pd_qty" type="number" step="0.1" min="0.1" value="1" class="form-control" style="max-width:120px;">
+              <button id="pd_addBtn" class="btn btn-success">أضف للسلة</button>
+              <button id="pd_orderNowBtn" class="btn btn-warning">اطلب الآن</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Modal -->
+  <div class="modal fade" id="cartModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">🛒 السلة</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="cartItems"></div>
+        <div class="modal-footer">
+          <strong class="me-auto" id="cartTotal">الإجمالي: 0 ج.م</strong>
+          <button id="checkoutBtn" class="btn btn-success">
+            اتمام الطلب ✅
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Local JS -->
+  <script src="script.js"></script>
+</body>
+</html>

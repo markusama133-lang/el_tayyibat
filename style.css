@@ -1,0 +1,92 @@
+/* ===== عام ===== */
+:root{
+  --beige:#fbf7ef;
+  --gold:#f4c542;
+  --brown:#8b5a2b;
+  --brand-red:#d62828;
+  --muted:#6b6b6b;
+}
+*{box-sizing:border-box}
+body{
+  font-family: "Cairo", "Tahoma", sans-serif;
+  background:var(--beige);
+  color:#222;
+  line-height:1.5;
+  padding-top:80px; /* Header fixed */
+}
+
+/* ===== Header ===== */
+.header-shadow{background:#fff}
+nav.navbar{
+  padding:0.6rem 0;
+}
+.logo-circle{
+  width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--gold),#ffd88a);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 6px 18px rgba(0,0,0,0.08)
+}
+/* .logo-circle{
+  width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--gold),#ffd88a);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 6px 18px rgba(0,0,0,0.08)
+} */
+.brand-ename{font-weight:700;color:var(--brown);font-size:16px}
+.brand-aname{font-size:12px;color:var(--muted)}
+
+/* ===== Hero ===== */
+.hero{
+  min-height:70vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  background-image: url('assets/halawa-bg.jpg');
+  background-size:cover;
+  background-position:center;
+  border-bottom-left-radius:28px;
+  border-bottom-right-radius:28px;
+  overflow:hidden;
+}
+.hero .overlay{
+  position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25));
+}
+.hero-content{position:relative;z-index:2;color:#fff;padding:40px;border-radius:12px}
+.text-gold{color:var(--gold)}
+.lead{color:#fff}
+
+/* ===== Sections ===== */
+.section-title{color:var(--brand-red);font-weight:700}
+.card{border-radius:14px}
+
+/* ===== Products grid ===== */
+.product-card{
+  border-radius:14px;overflow:hidden;background:#fff;
+  transition:transform .35s cubic-bezier(.2,.9,.3,1),box-shadow .35s;
+  box-shadow:0 8px 24px rgba(0,0,0,0.06);
+}
+.product-card:hover{transform:translateY(-8px);box-shadow:0 18px 40px rgba(0,0,0,0.12)}
+.product-card img{height:230px;object-fit:cover}
+.product-card .card-body{ text-align:center }
+.price-badge{color:var(--gold);font-weight:700;font-size:1.15rem}
+
+/* ===== Form styles ===== */
+#order .card{border-radius:16px}
+#order input, #order select, #order textarea{border-radius:10px}
+
+/* ===== Buttons ===== */
+.btn-warning{background:linear-gradient(90deg,var(--gold),#ffde7a);border:none;color:#4a2a00}
+.btn-danger{background:linear-gradient(90deg,var(--brand-red),#c52121);border:none}
+
+/* ===== Footer ===== */
+footer{border-top:3px solid rgba(0,0,0,0.03)}
+
+/* ===== Animations ===== */
+.animate-fade-up{opacity:0;transform:translateY(18px);animation:fadeUp .8s forwards}
+@keyframes fadeUp{to{opacity:1;transform:none}}
+
+/* animate when scrolled into view (simple) */
+.animate-on-scroll{opacity:0;transform:translateY(20px);transition:all .6s ease-out}
+.animate-on-scroll.visible{opacity:1;transform:none}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px){
+  .product-card img{height:160px}
+  .hero{min-height:54vh}
+  .logo-circle{width:48px;height:48px}
+}
